@@ -7,59 +7,57 @@ use Illuminate\Http\Request;
 
 class AlunoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
+    public $aluno;
+
+
+    public function __construct(Aluno $aluno)
+    {
+        $this->aluno = $aluno;
+    }
+
     public function index()
     {
-        //return 'Cheguei Aqui - INDEX';
 
-        $aluno = Aluno::all();
+        // $aluno = Aluno::all();
+        $alunos = $this->aluno->all();
 
-        return $aluno;
+        return response()->json($alunos, 200);
+
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         //return 'Cheguei Aqui - STORE'; retorna formato HTML
 
         // return ['Cheguei Aqui' => 'STORE']; // retorna estrutura formato JSON, para aplicativos
 
-        //dd($request->all());
 
-        $aluno = Aluno::create($request->all());
 
-        return $aluno;
+        $request->validate($this->aluno->Regras(),$this->aluno->Feedback());
+
+        $alunos = $this->aluno->create($request->all());
+
+        return response()->json($alunos, 200);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Aluno  $aluno
+     * @param  Integer
      * @return \Illuminate\Http\Response
      */
-    public function show(Aluno $aluno)
+    public function show($id)
     {
+        $alunos = $this->aluno->find($id);
+
+        if($alunos === null) {
+            return response()->json(['error' => 'Não existe dados para esse aluno'], 404); // a URL é válida, mas o recurso que uqer acessar não existe no banco
+        }
+
         // return 'Cheguei Aqui - SHOW';
-        return $aluno; // passar o id como parametro na url para passar os dados de um aluno em específico
+        return response()->json($alunos, 200) ;
     }
 
     /**
@@ -77,10 +75,10 @@ class AlunoController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Aluno  $aluno
+     * @param  Integer
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Aluno $aluno)
+    public function update(Request $request, $id)
     {
        //return 'Cheguei aqui - UPDATE';
 
@@ -89,22 +87,58 @@ class AlunoController extends Controller
         echo '<hr>';
         print_r($aluno->getAttributes()); // Dados antigos
         */
+       $alunos = $this->aluno->find($id);
 
-       $aluno->update($request->all()); // update dos novos dados
-       return $aluno;
+        if($alunos === null){
+            return response()->json(['erro' => 'Impossível realizar a atualização. O aluno não existe!'], 404);
+        }
+
+        if($request->method() === 'PATCH'){
+
+            // return ['teste' => 'PATCH'];
+
+            $dadosDinamico = [];
+
+            foreach($alunos->Regras() as $input => $regra){
+
+                if(array_key_exists($input, $request->all())){
+                    $dadosDinamico[$input] = $regra;
+                }
+
+            }
+
+            // dd($dadosDinamico);
+
+            $request->validate($dadosDinamico, $this->aluno->Feedback());
+         }else{
+
+            $request->validate($this->aluno->Regras(), $this->aluno->Feedback());
+
+        }
+
+
+
+       $alunos = $this->aluno->update($request->all()); // update dos novos dados
+
+       return response()->json($alunos, 200);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Aluno  $aluno
+     * @param  Integer
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Aluno $aluno)
+    public function destroy($id)
     {
-        //return 'Cheguei aqui - DESTROY';
-        $aluno->delete();
+        $alunos = $this->aluno->find($id);
 
-        return ['msg' => 'O registro foi removido com sucesso.'];
+        if($alunos === null){
+            return response()->json(['erro' => 'Impossível realizar a atualização. O aluno não existe!'], 404);
+        }
+
+        $alunos->delete();
+
+        return [['msg' => 'O registro foi removido com sucesso.'], 200];
     }
 }
