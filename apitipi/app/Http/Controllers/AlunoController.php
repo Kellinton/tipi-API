@@ -37,7 +37,16 @@ class AlunoController extends Controller
 
         $request->validate($this->aluno->Regras(),$this->aluno->Feedback());
 
-        $alunos = $this->aluno->create($request->all());
+        $imagem = $request->file('foto');
+
+        $imagem_url = $imagem->store('imagem', 'public'); // guarda o caminho
+
+        // dd($imagem_url);
+
+        $alunos = $this->aluno->create($request->all([
+            'nome' => $request->nome,
+            'foto' => $imagem_url
+        ]));
 
         return response()->json($alunos, 200);
     }
