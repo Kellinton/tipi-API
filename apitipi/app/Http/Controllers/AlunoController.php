@@ -118,7 +118,7 @@ class AlunoController extends Controller
 
 
 
-       $alunos = $this->aluno->update($request->all()); // update dos novos dados
+       $alunos->update($request->all()); // update dos novos dados
 
        return response()->json($alunos, 200);
     }
