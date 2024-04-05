@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Aluno;
+use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AlunoController extends Controller
 {
@@ -16,6 +18,11 @@ class AlunoController extends Controller
         $this->aluno = $aluno;
     }
 
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
 
@@ -26,14 +33,20 @@ class AlunoController extends Controller
 
     }
 
+        /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
 
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
-        //return 'Cheguei Aqui - STORE'; retorna formato HTML
-
-        // return ['Cheguei Aqui' => 'STORE']; // retorna estrutura formato JSON, para aplicativos
-
-
 
         $request->validate($this->aluno->Regras(),$this->aluno->Feedback());
 
@@ -41,12 +54,11 @@ class AlunoController extends Controller
 
         $imagem_url = $imagem->store('imagem', 'public'); // guarda o caminho
 
-        // dd($imagem_url);
 
-        $alunos = $this->aluno->create($request->all([
+        $alunos = $this->aluno->create([
             'nome' => $request->nome,
             'foto' => $imagem_url
-        ]));
+        ]);
 
         return response()->json($alunos, 200);
     }
@@ -89,22 +101,15 @@ class AlunoController extends Controller
      */
     public function update(Request $request, $id)
     {
-       //return 'Cheguei aqui - UPDATE';
 
-       /*
-        print_r($request->all()); // Novos dados
-        echo '<hr>';
-        print_r($aluno->getAttributes()); // Dados antigos
-        */
        $alunos = $this->aluno->find($id);
+
 
         if($alunos === null){
             return response()->json(['erro' => 'Impossível realizar a atualização. O aluno não existe!'], 404);
         }
 
         if($request->method() === 'PATCH'){
-
-            // return ['teste' => 'PATCH'];
 
             $dadosDinamico = [];
 
@@ -125,12 +130,21 @@ class AlunoController extends Controller
 
         }
 
+        if($request->file('foto')){
+            Storage::disk('public')->delete($alunos->foto);
+        }
 
+        $imagem = $request->file('foto');
+        $imagem_url = $imagem->store('imagem', 'public'); //
 
-       $alunos->update($request->all()); // update dos novos dados
+        $alunos->update([
+            'nome' => $request->nome,
+            'foto' => $imagem_url
+        ]);
 
        return response()->json($alunos, 200);
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -145,6 +159,8 @@ class AlunoController extends Controller
         if($alunos === null){
             return response()->json(['erro' => 'Impossível realizar a atualização. O aluno não existe!'], 404);
         }
+
+        Storage::disk('public')->delete($alunos->foto);
 
         $alunos->delete();
 
