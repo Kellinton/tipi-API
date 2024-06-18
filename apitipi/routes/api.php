@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AlunoController;
+use App\Models\Instrutor;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,3 +21,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::apiResource('aluno', 'App\Http\Controllers\AlunoController');
+
+Route::post('login', [AlunoController::class, 'login']);
+
+Route::middleware(['auth:sanctum', 'aluno'])->group(function() {
+    Route::apiResource('aluno', AlunoController::class);
+    Route::get('/aluno/{id}/matricula', [AlunoController::class, 'getMatricula']);
+    Route::get('/aluno/{id}/plano', [AlunoController::class, 'getPlano']);
+    Route::get('/aluno/{id}/aula', [AlunoController::class, 'getAula']);
+});
+
+// Rota para funcionários (Instrutores)
+Route::apiResource('funcionario', Instrutor::class);
