@@ -63,7 +63,7 @@ class AlunoController extends Controller
                         ],
                     ],
 
-                    'acess_token' => $token,
+                    'access_token' => $token,
                     'token_type'  => 'Bearer',
                 ]);
             }
